@@ -10,8 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@axieinfinity/lockbox": "*",
-    "@axieinfinity/lockbox-legacy": "*",
     "@axieinfinity/mavis-id-sdk": "^0.0.3",
     "@bufbuild/protobuf": "^1.10.0",
     "@types/node": "^20.14.12",
