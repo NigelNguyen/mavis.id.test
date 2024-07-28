@@ -1,6 +1,8 @@
 import { useState } from "react";
 import useIdProvider from "../context/useProvider";
 import AppShell from "../common/AppShell";
+import { fromFracAmount } from "../../lib/utils/currency";
+import { requestIdTransaction } from "../../lib/transaction/sendtransaction";
 const TESTNET_HOST = import.meta.env.VITE_TESTNET_HOST || origin;
 
 const SendTransaction = () => {
@@ -12,19 +14,25 @@ const SendTransaction = () => {
   const [txAddress, setTxAddress] = useState("");
 
   const sendTransactionHandler = async () => {
-    const tx = await signer?.sendTransaction({
+    // const tx = await signer?.sendTransaction({
+    //   to: address,
+    //   value: BigInt(amount * 10 ** 18),
+    //   chainId: 2021,
+    // });
+    // const txReceipt = await tx?.wait();
+    // if (txReceipt) {
+    //   setTxAddress(txReceipt.transactionHash);
+    // } else {
+    //   alert("Transaction failed");
+    // }
+    if (!signer) return;
+    const amountToTransfer = fromFracAmount(amount, 18);
+
+    const txHash = await requestIdTransaction({
       to: address,
-      value: BigInt(amount * 10 ** 18),
-      chainId: 2021,
+      value: amountToTransfer.toString()
     });
-    console.log({ tx });
-    const txReceipt = await tx?.wait();
-    console.log({ txReceipt });
-    if (txReceipt) {
-      setTxAddress(txReceipt.transactionHash);
-    } else {
-      alert("Transaction failed");
-    }
+    setTxAddress(txHash);
   };
 
   return (

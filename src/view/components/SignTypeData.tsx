@@ -5,6 +5,7 @@ import { ethers } from "ethers";
 const contractAddress = "0xfff9ce5f71ca6178d3beecedb61e7eff1602950e";
 const SignTypeData = () => {
   const { provider } = useIdProvider();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [message, setMessage] = useState("");
   const [hashedMessage, setHashedMessage] = useState("");
 

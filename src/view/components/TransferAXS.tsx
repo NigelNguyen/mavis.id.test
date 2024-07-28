@@ -1,9 +1,11 @@
 import { useState } from "react";
 import useIdProvider from "../context/useProvider";
 import AppShell from "../common/AppShell";
-import { AXS__factory } from "../contracts";
 import { addressConfig } from "../../constants/address";
 import { fromFracAmount } from "../../lib/utils/currency";
+import { requestIdTransaction } from "../../lib/transaction/sendtransaction";
+import { encodeFunctionData } from "viem";
+import { AXS_ABI } from "../contracts/abis/Axs";
 const TESTNET_HOST = import.meta.env.VITE_TESTNET_HOST || origin;
 const DEFAULT_ADDRESS = "0x42d53d15cD7d441305c4998217F14c5Af292fF84";
 
@@ -15,9 +17,22 @@ export const TransferAXS = () => {
 
   const sendTransactionHandler = async () => {
     if (!signer) return;
-    const contract = AXS__factory.connect(addressConfig.axs, signer);
-    const txData = await contract.transfer(address, fromFracAmount(amount, 18));
-    setTxHash(txData.hash);
+    const amountToTransfer = fromFracAmount(amount, 18);
+    const data = encodeFunctionData({
+      abi: AXS_ABI,
+      functionName: "transfer",
+      args: [address, amountToTransfer],
+    });
+
+    const txHash = await requestIdTransaction({
+      data,
+      to: addressConfig.axs,
+    });
+    setTxHash(txHash);
+
+    // const contract = AXS__factory.connect(addressConfig.axs, signer);
+    // const txData = await contract.transfer(address, fromFracAmount(amount, 18));
+    // setTxHash(txData.hash);
   };
 
   return (

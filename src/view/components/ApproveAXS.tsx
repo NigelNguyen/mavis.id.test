@@ -1,8 +1,11 @@
 import { useState } from "react";
 import useIdProvider from "../context/useProvider";
 import AppShell from "../common/AppShell";
-import { AXS__factory } from "../contracts";
 import { addressConfig } from "../../constants/address";
+import { fromFracAmount } from "../../lib/utils/currency";
+import { encodeFunctionData } from "viem";
+import { AXS_ABI } from "../contracts/abis/Axs";
+import { requestIdTransaction } from "../../lib/transaction/sendtransaction";
 const TESTNET_HOST = import.meta.env.VITE_TESTNET_HOST || origin;
 
 const ApproveAXS = () => {
@@ -13,10 +16,23 @@ const ApproveAXS = () => {
 
   const approveAxsHandler = async () => {
     if (!signer) return;
-    const contract = AXS__factory.connect(addressConfig.axs, signer);
-    const txData = await contract.approve(spender, BigInt(amount * 10 ** 18));
-    console.log({ txData });
-    setTxHash(txData.hash);
+    const amountToTransfer = fromFracAmount(amount, 18);
+    const data = encodeFunctionData({
+      abi: AXS_ABI,
+      functionName: "approve",
+      args: [spender, amountToTransfer],
+    });
+
+    const txHash = await requestIdTransaction({
+      to: addressConfig.axs,
+      data,
+    });
+    setTxHash(txHash);
+
+    // const contract = AXS__factory.connect(addressConfig.axs, signer);
+    // const txData = await contract.approve(spender, BigInt(amount * 10 ** 18));
+    // console.log({ txData });
+    // setTxHash(txData.hash);
   };
 
   return (
@@ -38,7 +54,7 @@ const ApproveAXS = () => {
         className="px-2 py-1 border rounded-md min-h-10"
       ></input>
       <input
-        placeholder="Address"
+        placeholder="Spender Address"
         value={spender}
         onChange={(event) => setSpenderAddress(event.target.value)}
         className="px-2 py-1 border rounded-md min-h-10"
