@@ -6,14 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint --ignore-path .eslintignore --cache --cache-location node_modules/.cache/.eslintcache --fix .",
     "preview": "vite preview"
   },
   "dependencies": {
     "@axieinfinity/lockbox": "*",
     "@axieinfinity/lockbox-legacy": "*",
     "@axieinfinity/mavis-id-sdk": "^0.0.3",
-    "@types/node": "^20.14.2",
+    "@bufbuild/protobuf": "^1.10.0",
+    "@types/node": "^20.14.12",
     "autoprefixer": "^10.4.19",
     "ethers": "5",
     "events": "3.3.0",
