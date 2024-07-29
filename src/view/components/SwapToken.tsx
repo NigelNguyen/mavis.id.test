@@ -8,6 +8,8 @@ import { Address, encodeFunctionData } from "viem";
 import { KatanaABI } from "../contracts/abis/Katana";
 import { requestIdTransaction } from "../../lib/transaction/sendtransaction";
 import { publicClient } from "../../lib/wallet/publicClient";
+import { tryCatch } from "../../lib/utils/tryCatch";
+import toast from "react-hot-toast";
 const TESTNET_HOST = import.meta.env.VITE_TESTNET_HOST || origin;
 
 export const SwapToken = () => {
@@ -15,65 +17,67 @@ export const SwapToken = () => {
   const [amount, setAmount] = useState(0.1);
   const [txHash, setTxHash] = useState("");
 
-  const handleSwapRonToAxs = async () => {
-    const account = await signer?.getAddress();
+  const handleSwapRonToAxs = () =>
+    tryCatch(async () => {
+      const account = await signer?.getAddress();
 
-    if (!signer || !account) return;
+      if (!signer || !account) return;
 
-    const slippageTolerance = parseUnits("2", 18);
-    const amountToSwap = parseUnits(amount.toString(), 18);
-    // If you want to set a minimum based on slippage tolerance, you can do something like this:
-    const slippageAmount = amountToSwap
-      .mul(slippageTolerance)
-      .div(constants.WeiPerEther);
-    let amountOutMin = amountToSwap.sub(slippageAmount);
+      const slippageTolerance = parseUnits("2", 18);
+      const amountToSwap = parseUnits(amount.toString(), 18);
+      // If you want to set a minimum based on slippage tolerance, you can do something like this:
+      const slippageAmount = amountToSwap
+        .mul(slippageTolerance)
+        .div(constants.WeiPerEther);
+      let amountOutMin = amountToSwap.sub(slippageAmount);
 
-    // Ensure amountOutMin is never negative
-    if (amountOutMin.lt(0)) {
-      amountOutMin = BigNumber.from(0);
-    }
-    const deadline = Math.floor(Date.now() / 1000) + 60 * 10; // 10 minutes from now
-    const path = [addressConfig.WRON, addressConfig.WETH_TESTNET];
+      // Ensure amountOutMin is never negative
+      if (amountOutMin.lt(0)) {
+        amountOutMin = BigNumber.from(0);
+      }
+      const deadline = Math.floor(Date.now() / 1000) + 60 * 10; // 10 minutes from now
+      const path = [addressConfig.WRON, addressConfig.WETH_TESTNET];
 
-    const dataObject = {
-      abi: KatanaABI,
-      functionName: "swapExactRONForTokens",
-      args: [amountOutMin, path, addressConfig.axs, deadline],
-    };
-    const data = encodeFunctionData(dataObject);
+      const dataObject = {
+        abi: KatanaABI,
+        functionName: "swapExactRONForTokens",
+        args: [amountOutMin, path, addressConfig.axs, deadline],
+      };
+      const data = encodeFunctionData(dataObject);
 
-    const gas = await publicClient.estimateContractGas({
-      address: addressConfig.axs as Address,
-      account: signer._address as Address,
-      ...dataObject,
+      const gas = await publicClient.estimateContractGas({
+        address: addressConfig.axs as Address,
+        account: signer._address as Address,
+        ...dataObject,
+      });
+
+      const txHash = await requestIdTransaction({
+        value: amountToSwap._hex,
+        data,
+        gas: BigNumber.from(gas).mul(20)._hex,
+        to: addressConfig.katana,
+      });
+
+      setTxHash(txHash);
+      toast.success(`Swap ${amount} Ron to AXS successfully.`);
+
+      // const katanaRouter = KatanaRouter__factory.connect(
+      //   addressConfig.katana,
+      //   signer
+      // );
+      //
+      // const swapTX = await katanaRouter.swapExactRONForTokens(
+      //   amountOutMin,
+      //   path,
+      //   account,
+      //   deadline,
+      //   {
+      //     gasPrice: parseUnits("0", "gwei"),
+      //     value: amountToSwap,
+      //   }
+      // );
+      // setTxHash(swapTX.hash);
     });
-
-    const txHash = await requestIdTransaction({
-      value: amountToSwap._hex,
-      data,
-      gas: BigNumber.from(gas).mul(20)._hex,
-      to: addressConfig.katana,
-    });
-
-    setTxHash(txHash);
-
-    // const katanaRouter = KatanaRouter__factory.connect(
-    //   addressConfig.katana,
-    //   signer
-    // );
-    //
-    // const swapTX = await katanaRouter.swapExactRONForTokens(
-    //   amountOutMin,
-    //   path,
-    //   account,
-    //   deadline,
-    //   {
-    //     gasPrice: parseUnits("0", "gwei"),
-    //     value: amountToSwap,
-    //   }
-    // );
-    // setTxHash(swapTX.hash);
-  };
 
   return (
     <AppShell
@@ -93,7 +97,14 @@ export const SwapToken = () => {
         onChange={(event) => setAmount(Number(event.target.value))}
         className="px-2 py-1 border rounded-md min-h-10"
       ></input>
-      <button onClick={handleSwapRonToAxs}>Swap to AXS</button>
+      <div className="flex w-full gap-2">
+        <button onClick={handleSwapRonToAxs} className="w-full">
+          Swap to AXS
+        </button>
+        {/* <button onClick={handleSwapRonToAxs} className="w-full">
+          Swap to RON
+        </button> */}
+      </div>
     </AppShell>
   );
 };

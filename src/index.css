@@ -44,7 +44,7 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a!important;
+  background-color: #1a1a1a !important;
   color: #fff;
   cursor: pointer;
   transition: border-color 0.25s;
@@ -55,6 +55,9 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+button[disabled] {
+  opacity: 0.6;
 }
 
 input {

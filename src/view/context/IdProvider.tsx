@@ -8,6 +8,7 @@ type Props = { children: React.ReactNode };
 type IdContext = {
   provider: ethers.ethers.providers.Web3Provider | null;
   signer: ethers.providers.JsonRpcSigner | null;
+  isAuthenticated?: boolean;
 };
 
 export const IdContext = createContext<IdContext>({
@@ -23,12 +24,14 @@ const IdProvider = ({ children }: Props) => {
   });
   const provider = new ethers.providers.Web3Provider(mavisIdProvider);
   const signer = provider.getSigner();
+  const isAuthenticated = !!localStorage.getItem("MAVIS.ID:PROFILE");
 
   return (
     <IdContext.Provider
       value={{
         provider,
         signer,
+        isAuthenticated,
       }}
     >
       {children}

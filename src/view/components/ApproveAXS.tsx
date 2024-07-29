@@ -1,39 +1,39 @@
 import { useState } from "react";
-import useIdProvider from "../context/useProvider";
 import AppShell from "../common/AppShell";
 import { addressConfig } from "../../constants/address";
 import { fromFracAmount } from "../../lib/utils/currency";
 import { encodeFunctionData } from "viem";
 import { AXS_ABI } from "../contracts/abis/Axs";
 import { requestIdTransaction } from "../../lib/transaction/sendtransaction";
+import { tryCatch } from "../../lib/utils/tryCatch";
+import toast from "react-hot-toast";
 const TESTNET_HOST = import.meta.env.VITE_TESTNET_HOST || origin;
 
 const ApproveAXS = () => {
-  const { signer } = useIdProvider();
   const [amount, setAmount] = useState(0.1);
   const [spender, setSpenderAddress] = useState(addressConfig.axs);
   const [txHash, setTxHash] = useState("");
 
-  const approveAxsHandler = async () => {
-    if (!signer) return;
-    const amountToTransfer = fromFracAmount(amount, 18);
-    const data = encodeFunctionData({
-      abi: AXS_ABI,
-      functionName: "approve",
-      args: [spender, amountToTransfer],
-    });
+  const approveAxsHandler = () =>
+    tryCatch(async () => {
+      const amountToTransfer = fromFracAmount(amount, 18);
+      const data = encodeFunctionData({
+        abi: AXS_ABI,
+        functionName: "approve",
+        args: [spender, amountToTransfer],
+      });
 
-    const txHash = await requestIdTransaction({
-      to: addressConfig.axs,
-      data,
+      const txHash = await requestIdTransaction({
+        to: addressConfig.axs,
+        data,
+      });
+      setTxHash(txHash);
+      toast.success("Approve AXS successfully.");
+      // const contract = AXS__factory.connect(addressConfig.axs, signer);
+      // const txData = await contract.approve(spender, BigInt(amount * 10 ** 18));
+      // console.log({ txData });
+      // setTxHash(txData.hash);
     });
-    setTxHash(txHash);
-
-    // const contract = AXS__factory.connect(addressConfig.axs, signer);
-    // const txData = await contract.approve(spender, BigInt(amount * 10 ** 18));
-    // console.log({ txData });
-    // setTxHash(txData.hash);
-  };
 
   return (
     <AppShell

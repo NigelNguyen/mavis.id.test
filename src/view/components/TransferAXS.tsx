@@ -6,6 +6,8 @@ import { fromFracAmount } from "../../lib/utils/currency";
 import { requestIdTransaction } from "../../lib/transaction/sendtransaction";
 import { encodeFunctionData } from "viem";
 import { AXS_ABI } from "../contracts/abis/Axs";
+import { tryCatch } from "../../lib/utils/tryCatch";
+import toast from "react-hot-toast";
 const TESTNET_HOST = import.meta.env.VITE_TESTNET_HOST || origin;
 const DEFAULT_ADDRESS = "0x42d53d15cD7d441305c4998217F14c5Af292fF84";
 
@@ -15,25 +17,27 @@ export const TransferAXS = () => {
   const [address, setAddress] = useState(DEFAULT_ADDRESS);
   const [txHash, setTxHash] = useState("");
 
-  const sendTransactionHandler = async () => {
-    if (!signer) return;
-    const amountToTransfer = fromFracAmount(amount, 18);
-    const data = encodeFunctionData({
-      abi: AXS_ABI,
-      functionName: "transfer",
-      args: [address, amountToTransfer],
-    });
+  const sendTransactionHandler = () =>
+    tryCatch(async () => {
+      if (!signer) return;
+      const amountToTransfer = fromFracAmount(amount, 18);
+      const data = encodeFunctionData({
+        abi: AXS_ABI,
+        functionName: "transfer",
+        args: [address, amountToTransfer],
+      });
 
-    const txHash = await requestIdTransaction({
-      data,
-      to: addressConfig.axs,
-    });
-    setTxHash(txHash);
+      const txHash = await requestIdTransaction({
+        data,
+        to: addressConfig.axs,
+      });
+      setTxHash(txHash);
+      toast.success("Transfer AXS successfully.")
 
-    // const contract = AXS__factory.connect(addressConfig.axs, signer);
-    // const txData = await contract.transfer(address, fromFracAmount(amount, 18));
-    // setTxHash(txData.hash);
-  };
+      // const contract = AXS__factory.connect(addressConfig.axs, signer);
+      // const txData = await contract.transfer(address, fromFracAmount(amount, 18));
+      // setTxHash(txData.hash);
+    });
 
   return (
     <AppShell

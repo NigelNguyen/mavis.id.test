@@ -7,10 +7,11 @@ import SendTransaction from "./view/components/SendTransaction";
 import ApproveAXS from "./view/components/ApproveAXS";
 import { TransferAXS } from "./view/components/TransferAXS";
 import { SwapToken } from "./view/components/SwapToken";
+import toast, { Toaster } from "react-hot-toast";
 // import SignTypeData from "./view/components/SignTypeData";
 
 function App() {
-  const { provider } = useIdProvider();
+  const { provider, isAuthenticated } = useIdProvider();
 
   const connect = async () => {
     if (!provider) {
@@ -18,33 +19,43 @@ function App() {
       return;
     }
     await provider.send("eth_requestAccounts", []);
+    toast.success("Connected with Mavis ID.");
+    location.reload();
   };
 
   const disconnect = async () => {
     localStorage.removeItem("MAVIS.ID:PROFILE");
+    toast("Disconnected.");
     location.reload();
   };
 
   return (
-    <div className="flex justify-between w-full gap-8">
-      <div className="w-full">
-        <div className="flex flex-col items-center gap-4 p-4 mt-24 justify-self-start">
-          <button onClick={connect}>Connect Your ID Wallet</button>
-          <button onClick={disconnect}>Disconnect Your Wallet</button>
+    <>
+      <Toaster position="bottom-left" />
+      <div className="flex flex-col justify-between w-full md:flex-row">
+        <div className="w-full border-b shadow-lg md:border-r h-1/6 md:h-screen">
+          <div className="flex flex-col items-center gap-4 p-4 md:mt-24 justify-self-start">
+            <button onClick={connect} disabled={!!isAuthenticated}>
+              Connect Your ID Wallet
+            </button>
+            <button onClick={disconnect} disabled={!isAuthenticated}>
+              Disconnect Your Wallet
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-col w-full h-full gap-8 p-4 pt-8 overflow-y-scroll md:h-screen justify-self-center no-scrollbar md:pl-8">
+          <GetAddress />
+          <GetBalance />
+          <SendTransaction />
+          <SignMessage />
+          {/* <SignTypeData /> */}
+          <ApproveAXS />
+          <TransferAXS />
+          <SwapToken />
         </div>
       </div>
-
-      <div className="flex flex-col w-full h-screen gap-8 p-4 overflow-y-scroll justify-self-center no-scrollbar">
-        <GetAddress />
-        <GetBalance />
-        <SendTransaction />
-        <SignMessage />
-        {/* <SignTypeData /> */}
-        <ApproveAXS />
-        <TransferAXS />
-        <SwapToken />
-      </div>
-    </div>
+    </>
   );
 }
 
